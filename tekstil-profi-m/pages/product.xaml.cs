@@ -70,32 +70,20 @@ namespace tekstil_profi_m.pages
 
         }
 
-        private void Delete(object sender, RoutedEventArgs e)
-        {
-            var merchDell = BDWorkers.SelectedItems.Cast<Merch>().ToList();
-
-            if (MessageBox.Show($"Вы точно хотите удалить следующие {merchDell.Count()} элементов?", "Внимание", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-            {
-                try
-                {
-                    IEnumerable<Merch> enumerable = dipEntitie.GetContext().Merch.RemoveRange((IEnumerable<Merch>)merchDell);
-                    dipEntitie.GetContext().SaveChanges();
-                    MessageBox.Show("Данные удалены!");
-
-                    BDWorkers.ItemsSource = dipEntitie.GetContext().Merch.ToList();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message.ToString());
-                }
-            }
-        }
+        
 
         private void nazClick(object sender, RoutedEventArgs e)
         {
             admin adm = new admin();
             Visibility = Visibility.Hidden;
             adm.Show();
+        }
+
+        private void Add(object sender, RoutedEventArgs e)
+        {
+            AddMerches add = new AddMerches(null);
+            this.Visibility = Visibility.Hidden;
+            add.Show();
         }
     }
 }

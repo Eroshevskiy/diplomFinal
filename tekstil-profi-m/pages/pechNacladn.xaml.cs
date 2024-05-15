@@ -13,6 +13,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using tekstil_profi_m.classes;
+using tekstil_profi_m.models;
 using static tekstil_profi_m.pages.nackladn;
 
 namespace tekstil_profi_m.pages
@@ -23,16 +25,27 @@ namespace tekstil_profi_m.pages
     public partial class pechNacladn : Window
     {
         private ObservableCollection<nackladn.OrderItem> orderItems;
-        private int OrderItemCount => orderItems.Count;
+        
+
+
+
 
         public pechNacladn(ObservableCollection<nackladn.OrderItem> orderItems)
         {
             InitializeComponent();
+            foreach (var orderItem in orderItems)
+            {
+                orderItem.OtvetCollection = new ObservableCollection<Otvetstvenie>(dboconnect.modeldb.Otvetstvenie);
+            }
             this.orderItems = orderItems;
             OrderLV.ItemsSource = orderItems;
-            
+
         }
 
+
+
+
+        
         private void ydalClick(object sender, RoutedEventArgs e)
         {
             if (OrderLV.SelectedItem != null)
@@ -46,10 +59,7 @@ namespace tekstil_profi_m.pages
             }
         }
 
-        private void PrintButton(object sender, RoutedEventArgs e)
-        {
-
-        }
+        
 
         private void PrintButton_Click(object sender, RoutedEventArgs e)
         {
@@ -78,20 +88,80 @@ namespace tekstil_profi_m.pages
 
 
         }
-
-        private void SaveImage(RenderTargetBitmap renderTargetBitmap)
+        public void SavePlanClone()
         {
-            // Создаем кодек для сохранения изображения
-            BitmapEncoder encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
-
-            // Сохраняем изображение
-            using (FileStream stream = new FileStream("page_image.png", FileMode.Create))
+            try
             {
-                encoder.Save(stream);
+                using (var context = new dipEntitie())
+                {
+                    foreach (var orderItem in orderItems)
+                    {
+                        var order = new Plan
+                        {
+                            id_merch = orderItem.MerchId,
+                            id_otvetst = orderItem.OtvetPoint?.id ?? 1,
+                            material = orderItem.MerchMaterial,
+                            name = orderItem.MerchName,
+                            razmer = orderItem.MerchRazmer,
+                            color = orderItem.MerchColor,
+                            photo = orderItem.PhotoPath,
+                        };
+
+                        context.Plan.Add(order);
+
+                    }
+
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Произошла ошибка при сохранении заказа в базу данных: {ex.Message}", "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        private void SavePlan(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                using (var context = new dipEntitie())
+                {
+                    foreach (var orderItem in orderItems)
+                    {
+                        var order = new Plan
+                        {
 
 
+
+
+
+                            id_merch = orderItem.MerchId,
+                            id_otvetst = orderItem.OtvetPoint?.id ?? 1,
+                            material = orderItem.MerchMaterial,
+                            name = orderItem.MerchName,
+                            razmer = orderItem.MerchRazmer,
+                            color = orderItem.MerchColor,
+                            photo = orderItem.PhotoPath,
+                            count = orderItem.count // Сохранение количества товара
+
+
+
+
+                        };
+
+                        context.Plan.Add(order);
+
+                        
+
+                        
+                    }
+
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Произошла ошибка при сохранении заказа в базу данных: {ex.Message}", "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
     }
 }
